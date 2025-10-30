@@ -1,16 +1,31 @@
-# This is a sample Python script.
+import asyncio
+from asyncio import FIRST_EXCEPTION
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from playwright.async_api import async_playwright
+from playwright_stealth import Stealth
+
+from utils import RegistryWrapper, async_timer
+
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+
+@async_timer
+async def executer(name_of_product_):
+    async with Stealth().use_async(async_playwright()) as p:
+        browser = await p.chromium.launch(headless=False)
+        context = await browser.new_context(user_agent=user_agent)
+        pending = []
+        for site in RegistryWrapper.take_sites():
+            site.name_of_product = name_of_product_
+            pending.append(asyncio.create_task(site.execute(context)))
+
+        while pending:
+            done, pending = await asyncio.wait(pending, return_when=FIRST_EXCEPTION)
+            for done_task in done:
+                if not done_task.exception():
+                    print(done_task)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    name_of_product = '+'.join(input().split())
+    #print(name_of_product)
+    asyncio.run(executer(name_of_product))
