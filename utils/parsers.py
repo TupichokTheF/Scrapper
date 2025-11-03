@@ -73,6 +73,6 @@ class Ozon(SiteInterface):
         page = await context.new_page()
         await page.goto(f"https://www.ozon.ru/search/?text={self._name_of_product}")
         locator = page.locator("#__ozon")
-        await expect(locator).to_be_visible(timeout=50000)
+        await expect(locator).to_be_visible(timeout=40000)
         content = await page.content()
         return content
