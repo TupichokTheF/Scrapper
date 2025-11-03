@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, expect
 from abc import ABC, abstractmethod
 
@@ -6,73 +7,67 @@ from utils import RegistryWrapper
 class SiteInterface(ABC):
 
     def __init__(self):
-        self._name_of_product = None
+        self.content = None
 
-    @property
-    def name_of_product(self):
-        return self._name_of_product
-
-    @name_of_product.setter
-    def name_of_product(self, value):
-        self._name_of_product = value
+    async def execute(self, context, name_of_product):
+        page = await context.new_page()
+        await page.goto(self.take_url() + name_of_product)
+        locator = page.locator("body")
+        await expect(locator).to_be_visible(timeout=50000)
+        self.content = await page.content()
+        self.content = BeautifulSoup(self.content, 'html.parser')
+        return self.parse_page()
 
     @abstractmethod
-    async def execute(self, context):
+    def take_url(self):
+        pass
+
+    @abstractmethod
+    def parse_page(self):
         pass
 
 
 @RegistryWrapper()
 class MVideo(SiteInterface):
 
-    async def execute(self, context):
-        page = await context.new_page()
-        await page.goto(f"https://www.mvideo.ru/product-list-page?q={self._name_of_product}")
-        locator = page.locator(".app")
-        await expect(locator).to_be_visible(timeout=50000)
-        content = await page.content()
-        return content
+    def take_url(self):
+        return "https://www.mvideo.ru/product-list-page?q="
 
+    def parse_page(self):
+        pass
 
 @RegistryWrapper()
 class Eldorado(SiteInterface):
 
-    async def execute(self, context):
-        page = await context.new_page()
-        await page.goto(f"https://www.eldorado.ru/search/catalog.php?q={self._name_of_product}&utf")
-        locator = page.locator("#__next")
-        await expect(locator).to_be_visible(timeout=50000)
-        content = await page.content()
-        return content
+    def take_url(self):
+        return "https://www.eldorado.ru/search/catalog.php?q="
+
+    def parse_page(self):
+        pass
 
 @RegistryWrapper()
 class Citilink(SiteInterface):
 
-    async def execute(self, context):
-        page = await context.new_page()
-        await page.goto(f"https://www.citilink.ru/search/?text={self._name_of_product}")
-        locator = page.locator("#__next")
-        await expect(locator).to_be_visible(timeout=50000)
-        content = await page.content()
-        return content
+    def take_url(self):
+        return "https://www.citilink.ru/search/?text="
+
+    def parse_page(self):
+        pass
 
 @RegistryWrapper()
 class YaMarket(SiteInterface):
 
-    async def execute(self, context):
-        page = await context.new_page()
-        await page.goto(f"https://market.yandex.ru/search?text={self._name_of_product}")
-        locator = page.locator(".page")
-        await expect(locator).to_be_visible(timeout=50000)
-        content = await page.content()
-        return content
+    def take_url(self):
+        return "https://market.yandex.ru/search?text="
+
+    def parse_page(self):
+        pass
 
 @RegistryWrapper()
 class Ozon(SiteInterface):
 
-    async def execute(self, context):
-        page = await context.new_page()
-        await page.goto(f"https://www.ozon.ru/search/?text={self._name_of_product}")
-        locator = page.locator("#__ozon")
-        await expect(locator).to_be_visible(timeout=40000)
-        content = await page.content()
-        return content
+    def take_url(self):
+        return "https://www.ozon.ru/search/?text="
+
+    def parse_page(self):
+        pass

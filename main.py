@@ -13,19 +13,16 @@ async def executer(name_of_product_):
     async with Stealth().use_async(async_playwright()) as p:
         browser = await p.chromium.launch(headless=False)
         context = await browser.new_context(user_agent=user_agent)
-        pending = []
-        for site in RegistryWrapper.take_sites():
-            site.name_of_product = name_of_product_
-            pending.append(asyncio.create_task(site.execute(context)))
+        sites = RegistryWrapper.take_sites()
+        pending = [asyncio.create_task(site.execute(context, name_of_product_)) for site in sites]
 
         while pending:
             done, pending = await asyncio.wait(pending, return_when=FIRST_EXCEPTION)
             for done_task in done:
                 if not done_task.exception():
                     print(done_task)
-
+        # await asyncio.sleep(100)
 
 if __name__ == '__main__':
     name_of_product = '+'.join(input().split())
-    #print(name_of_product)
     asyncio.run(executer(name_of_product))
