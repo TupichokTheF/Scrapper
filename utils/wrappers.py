@@ -7,9 +7,8 @@ class RegistryWrapper:
     def take_sites(cls):
         return cls.web_sites
 
-    @classmethod
-    def __call__(cls, web_site):
-        cls.web_sites.append(web_site())
+    def __call__(self, web_site):
+        self.web_sites.append(web_site())
         return web_site
 
 def async_timer(func):
