@@ -16,7 +16,6 @@ class SiteInterface(ABC):
 
     def __init__(self):
         self.content = None
-        self.result = None
 
     async def execute(self, context, name_of_product):
         page = await context.new_page()
@@ -49,12 +48,19 @@ class Eldorado(SiteInterface):
     def parse_page(self):
         soup = BeautifulSoup(self.content, "html.parser")
         ls_items = soup.find_all("li", {"class": "el1P"})
-        self.result = [self.parse_one(item) for item in ls_items]
+        result = [self.parse_one(item) for item in ls_items]
+        return result
 
     def parse_one(self, item):
         item_data = []
-        item_classes = [".el-P", ".elzY", ".elsB", ".elbv"]
-        print(item.find('img', {"class": "elsB"}))
+        item_classes = [("a", "el-P", 0), ("span", "elzY", 0), ("img", "elsB", "src"), ("a", "elbv", "href")]
+        for item_class in item_classes:
+            if isinstance(item_class[2], str):
+                item_data.append(item.find(item_class[0], {"class": item_class[1]})[item_class[2]])
+            else:
+                item_data.append(item.find(item_class[0], {"class": item_class[1]}).contents[0])
+        item_data[3] = "https://www.eldorado.ru" + item_data[3]
+        return Product(*item_data)
 
 @RegistryWrapper()
 class Citilink(SiteInterface):
