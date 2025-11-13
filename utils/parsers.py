@@ -2,7 +2,10 @@ from bs4 import BeautifulSoup
 from playwright.async_api import expect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import logging
+from aiohttp import ClientSession
+import json
+from .request_params.MVideo import GET_product_ids, POST_list_products, GET_product_prices
+import time, asyncio
 
 from utils import RegistryWrapper
 
@@ -11,7 +14,7 @@ class Product:
     name: str
     price: int
     image: str
-    url: str
+    url: str = None
 
 class SiteInterface(ABC):
     _url = None
@@ -34,14 +37,56 @@ class SiteInterface(ABC):
 
 
 @RegistryWrapper()
-class MVideo(SiteInterface):
-    _url = "https://www.mvideo.ru/product-list-page?q={0}"
-    _css_selector = ".app"
+class MVideo:
 
-    def parse_page(self):
-        soup = BeautifulSoup(self.content, "html.parser")
-        ls_items = soup.findAll("div", {"class": "product-cards-row"})
-        print(ls_items)
+    async def execute(self, _, name_of_product):
+        async with ClientSession() as session:
+            product_ids = await self.get_product_ids(session, name_of_product)
+            res = await asyncio.gather(*[self.get_products(session, product_ids), self.get_product_prices(session, product_ids)])
+            products, product_prices = res
+        return [Product(product['name'], price['price']['salePrice'], "https://img.mvideo.ru/" + product['image'])
+                for product, price in zip(products, product_prices)]
+
+    async def get_product_ids(self, session, name_of_product):
+        try:
+            GET_product_ids.PARAMS["query"] = name_of_product
+            async with session.get(GET_product_ids.URL, params=GET_product_ids.PARAMS,
+                                   cookies=GET_product_ids.COOKIES,
+                                   headers=GET_product_ids.HEADERS) as response:
+                res = await response.read()
+                data = json.loads(res)
+
+            return data["body"]["products"]
+        except Exception as e:
+            print(f"Get_Product_ids: {e}")
+
+    async def get_products(self, session, product_ids):
+        try:
+            POST_list_products.JSON_DATA['productIds'] = product_ids
+            async with session.post(POST_list_products.URL, params=GET_product_ids.PARAMS,
+                                    cookies=GET_product_ids.COOKIES,
+                                    headers=GET_product_ids.HEADERS,
+                                    json=POST_list_products.JSON_DATA) as response:
+                result = await response.read()
+                data = json.loads(result)
+
+            return sorted(data["body"]["products"], key= lambda x: x['productId'])
+        except Exception as e:
+            print(f"Get_Products: {e}")
+
+    async def get_product_prices(self, session, product_ids):
+        try:
+            GET_product_prices.PARAMS['productIds'] = ','.join(product_ids)
+            async with session.get(GET_product_prices.URL, params=GET_product_prices.PARAMS,
+                                   cookies=GET_product_ids.COOKIES,
+                                   headers=GET_product_ids.HEADERS) as response:
+                res = await response.read()
+                data = json.loads(res)
+
+            return sorted(data["body"]["materialPrices"], key=lambda x: x['productId'])
+        except Exception as e:
+            print(f"Get_Product_Pricces: {e}")
+
 
 @RegistryWrapper()
 class Eldorado(SiteInterface):
