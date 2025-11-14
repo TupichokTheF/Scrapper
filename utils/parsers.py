@@ -42,8 +42,7 @@ class MVideo:
     async def execute(self, _, name_of_product):
         async with ClientSession() as session:
             product_ids = await self.get_product_ids(session, name_of_product)
-            res = await asyncio.gather(*[self.get_products(session, product_ids), self.get_product_prices(session, product_ids)])
-            products, product_prices = res
+            products, product_prices = await asyncio.gather(*[self.get_products(session, product_ids), self.get_product_prices(session, product_ids)])
         return [Product(product['name'], price['price']['salePrice'], "https://img.mvideo.ru/" + product['image'])
                 for product, price in zip(products, product_prices)]
 
@@ -119,7 +118,17 @@ class Citilink(SiteInterface):
     _css_selector = "#__next"
 
     def parse_page(self):
+        soup = BeautifulSoup(self.content, "html.parser")
+        elements = (soup.find("div", {"data-meta-name": "ProductListLayout"})
+              .find("section")
+              .findChildren("div", recursive = False)[1]
+              .findChildren("div", recursive = False)[1]
+              .findChildren("div", recursive = False))
+        return [self.parse_one_product(element) for element in elements]
+
+    def parse_one_product(self, element):
         pass
+
 
 @RegistryWrapper()
 class YaMarket(SiteInterface):
