@@ -14,6 +14,7 @@ class Product:
     name: str
     price: int
     image: str
+    shop: str
     url: str = None
 
 class SiteInterface(ABC):
@@ -22,14 +23,18 @@ class SiteInterface(ABC):
 
     def __init__(self):
         self.content = None
+        self.page = None
 
     async def execute(self, context, name_of_product):
-        page = await context.new_page()
-        await page.goto(self._url.format(name_of_product))
-        locator = page.locator(self._css_selector)
-        await expect(locator).to_be_visible(timeout=50000)
-        self.content = await page.content()
+        await self.load_page(context, name_of_product)
+        self.content = await self.page.content()
         return self.parse_page()
+
+    async def load_page(self, context, name_of_product):
+        self.page = await context.new_page()
+        await self.page.goto(self._url.format(name_of_product))
+        locator = self.page.locator(self._css_selector)
+        await expect(locator).to_be_visible(timeout=50000)
 
     @abstractmethod
     def parse_page(self):
@@ -43,7 +48,7 @@ class MVideo:
         async with ClientSession() as session:
             product_ids = await self.get_product_ids(session, name_of_product)
             products, product_prices = await asyncio.gather(*[self.get_products(session, product_ids), self.get_product_prices(session, product_ids)])
-        return [Product(product['name'], price['price']['salePrice'], "https://img.mvideo.ru/" + product['image'])
+        return [Product(product['name'], price['price']['salePrice'], "https://img.mvideo.ru/" + product['image'], "МВидео")
                 for product, price in zip(products, product_prices)]
 
     async def get_product_ids(self, session, name_of_product):
@@ -107,7 +112,7 @@ class Eldorado(SiteInterface):
             name = item_tags[1].find("a").contents[0]
             price = item_tags[2].find("span").contents[0]
             url = item_tags[0].find("a")["href"]
-            return Product(name, price, image, url)
+            return Product(name, price, image, "Эльдорадо", url)
         except Exception as e:
             #logging.exception(type(e).__name__)
             return None
@@ -115,20 +120,36 @@ class Eldorado(SiteInterface):
 @RegistryWrapper()
 class Citilink(SiteInterface):
     _url = "https://www.citilink.ru/search/?text={0}"
-    _css_selector = "#__next"
+    _css_selector = "[data-meta-name=ProductListLayout]"
+
+    async def load_page(self, context, name_of_product):
+        await super().load_page(context, name_of_product)
+        await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        await self.page.wait_for_timeout(5000)
 
     def parse_page(self):
-        soup = BeautifulSoup(self.content, "html.parser")
-        elements = (soup.find("div", {"data-meta-name": "ProductListLayout"})
-              .find("section")
-              .findChildren("div", recursive = False)[1]
-              .findChildren("div", recursive = False)[1]
-              .findChildren("div", recursive = False))
-        return [self.parse_one_product(element) for element in elements]
+        try:
+            soup = BeautifulSoup(self.content, "html.parser")
+            elements = (soup.find("div", {"data-meta-name": "ProductListLayout"})
+                  .find("section")
+                  .findChildren("div", recursive = False)[1]
+                  .findChildren("div", recursive = False)[1]
+                  .findChildren("div", recursive = False))
+            return [self.parse_one_product(element) for element in elements]
+        except Exception as e:
+            print(e)
 
     def parse_one_product(self, element):
-        pass
-
+        try:
+            tags = element.find("div").find("div").findChildren("div", recursive = False)
+            image = tags[1].find("img")["src"]
+            name = tags[1].findChildren("div", recursive = False)[2].find("a").get_text()
+            url = "https://www.citilink.ru/" + tags[1].findChildren("div", recursive = False)[2].find("a")["href"]
+            price = tags[4].findChildren("div", recursive = False)[1].find("div").get_text()
+            pr = Product(name, price, image, "Ситилинк", url)
+            return pr
+        except Exception as e:
+            print(e)
 
 @RegistryWrapper()
 class YaMarket(SiteInterface):
@@ -138,7 +159,7 @@ class YaMarket(SiteInterface):
     def parse_page(self):
         pass
 
-@RegistryWrapper()
+#@RegistryWrapper()
 class Ozon(SiteInterface):
     _url = "https://www.ozon.ru/search/?text={0}"
     _css_selector = "#__ozon"
