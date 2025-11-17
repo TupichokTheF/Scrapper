@@ -1,4 +1,4 @@
-import time
+import time, logging
 
 class RegistryWrapper:
     web_sites = []
@@ -19,3 +19,26 @@ def async_timer(func):
         finally:
             print(time.time() - start)
     return wrapper
+
+class Logger:
+
+    def __init__(self, sync):
+        self.sync = sync
+
+    def __call__(self, func):
+        logging.basicConfig(level=logging.INFO, filename="log_file.log", filemode="w",
+                            format="%(asctime)s %(levelname)s %(message)s")
+
+        async def async_log(*args, **kwargs):
+            try:
+                return await func(*args, **kwargs)
+            except Exception as e:
+                logging.error(f"{func.__name__} {e}")
+
+        def sync_log(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                logging.error(f"{func.__name__} {e}")
+
+        return sync_log if self.sync else async_log

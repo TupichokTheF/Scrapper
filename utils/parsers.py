@@ -7,7 +7,7 @@ import json
 from .request_params.MVideo import GET_product_ids, POST_list_products, GET_product_prices
 import time, asyncio
 
-from utils import RegistryWrapper
+from utils import RegistryWrapper, Logger
 
 @dataclass(frozen=True)
 class Product:
@@ -51,45 +51,39 @@ class MVideo:
         return [Product(product['name'], price['price']['salePrice'], "https://img.mvideo.ru/" + product['image'], "МВидео")
                 for product, price in zip(products, product_prices)]
 
+    @Logger(sync=False)
     async def get_product_ids(self, session, name_of_product):
-        try:
-            GET_product_ids.PARAMS["query"] = name_of_product
-            async with session.get(GET_product_ids.URL, params=GET_product_ids.PARAMS,
-                                   cookies=GET_product_ids.COOKIES,
-                                   headers=GET_product_ids.HEADERS) as response:
-                res = await response.read()
-                data = json.loads(res)
+        GET_product_ids.PARAMS["query"] = name_of_product
+        async with session.get(GET_product_ids.URL, params=GET_product_ids.PARAMS,
+                               cookies=GET_product_ids.COOKIES,
+                               headers=GET_product_ids.HEADERS) as response:
+            res = await response.read()
+            data = json.loads(res)
 
-            return data["body"]["products"]
-        except Exception as e:
-            print(f"Get_Product_ids: {e}")
+        return data["body"]["products"]
 
+    @Logger(sync=False)
     async def get_products(self, session, product_ids):
-        try:
-            POST_list_products.JSON_DATA['productIds'] = product_ids
-            async with session.post(POST_list_products.URL, params=GET_product_ids.PARAMS,
-                                    cookies=GET_product_ids.COOKIES,
-                                    headers=GET_product_ids.HEADERS,
-                                    json=POST_list_products.JSON_DATA) as response:
-                result = await response.read()
-                data = json.loads(result)
+        POST_list_products.JSON_DATA['productIds'] = product_ids
+        async with session.post(POST_list_products.URL, params=GET_product_ids.PARAMS,
+                                cookies=GET_product_ids.COOKIES,
+                                headers=GET_product_ids.HEADERS,
+                                json=POST_list_products.JSON_DATA) as response:
+            result = await response.read()
+            data = json.loads(result)
 
-            return sorted(data["body"]["products"], key= lambda x: x['productId'])
-        except Exception as e:
-            print(f"Get_Products: {e}")
+        return sorted(data["body"]["products"], key= lambda x: x['productId'])
 
+    @Logger(sync=False)
     async def get_product_prices(self, session, product_ids):
-        try:
-            GET_product_prices.PARAMS['productIds'] = ','.join(product_ids)
-            async with session.get(GET_product_prices.URL, params=GET_product_prices.PARAMS,
-                                   cookies=GET_product_ids.COOKIES,
-                                   headers=GET_product_ids.HEADERS) as response:
-                res = await response.read()
-                data = json.loads(res)
+        GET_product_prices.PARAMS['productIds'] = ','.join(product_ids)
+        async with session.get(GET_product_prices.URL, params=GET_product_prices.PARAMS,
+                               cookies=GET_product_ids.COOKIES,
+                               headers=GET_product_ids.HEADERS) as response:
+            res = await response.read()
+            data = json.loads(res)
 
-            return sorted(data["body"]["materialPrices"], key=lambda x: x['productId'])
-        except Exception as e:
-            print(f"Get_Product_Pricces: {e}")
+        return sorted(data["body"]["materialPrices"], key=lambda x: x['productId'])
 
 
 @RegistryWrapper()
@@ -105,6 +99,7 @@ class Eldorado(SiteInterface):
         result = [self.parse_one(item) for item in ls_items]
         return result
 
+    @Logger(sync=True)
     def parse_one(self, item):
         try:
             item_tags = item.findChildren("div", recursive=False)
@@ -122,34 +117,31 @@ class Citilink(SiteInterface):
     _url = "https://www.citilink.ru/search/?text={0}"
     _css_selector = "[data-meta-name=ProductListLayout]"
 
+    @Logger(sync=False)
     async def load_page(self, context, name_of_product):
         await super().load_page(context, name_of_product)
         await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         await self.page.wait_for_timeout(5000)
 
+    @Logger(sync=True)
     def parse_page(self):
-        try:
-            soup = BeautifulSoup(self.content, "html.parser")
-            elements = (soup.find("div", {"data-meta-name": "ProductListLayout"})
-                  .find("section")
-                  .findChildren("div", recursive = False)[1]
-                  .findChildren("div", recursive = False)[1]
-                  .findChildren("div", recursive = False))
-            return [self.parse_one_product(element) for element in elements]
-        except Exception as e:
-            print(e)
+        soup = BeautifulSoup(self.content, "html.parser")
+        elements = (soup.find("div", {"data-meta-name": "ProductListLayout"})
+              .find("section")
+              .findChildren("div", recursive = False)[1]
+              .findChildren("div", recursive = False)[1]
+              .findChildren("div", recursive = False))
+        return [self.parse_one_product(element) for element in elements]
 
+    @Logger(sync=True)
     def parse_one_product(self, element):
-        try:
-            tags = element.find("div").find("div").findChildren("div", recursive = False)
-            image = tags[1].find("img")["src"]
-            name = tags[1].findChildren("div", recursive = False)[2].find("a").get_text()
-            url = "https://www.citilink.ru/" + tags[1].findChildren("div", recursive = False)[2].find("a")["href"]
-            price = tags[4].findChildren("div", recursive = False)[1].find("div").get_text()
-            pr = Product(name, price, image, "Ситилинк", url)
-            return pr
-        except Exception as e:
-            print(e)
+        tags = element.find("div").find("div").findChildren("div", recursive = False)
+        image = tags[1].find("img")["src"]
+        name = tags[1].findChildren("div", recursive = False)[2].find("a").get_text()
+        url = "https://www.citilink.ru/" + tags[1].findChildren("div", recursive = False)[2].find("a")["href"]
+        price = tags[4].findChildren("div", recursive = False)[1].find("div").get_text()
+        pr = Product(name, price, image, "Ситилинк", url)
+        return pr
 
 @RegistryWrapper()
 class YaMarket(SiteInterface):
@@ -157,9 +149,24 @@ class YaMarket(SiteInterface):
     _css_selector = ".page"
 
     def parse_page(self):
-        pass
+        soup = BeautifulSoup(self.content, "html.parser")
+        elements = (soup.find("div", {"data-auto": "SerpList"}).findChildren("div", recursive = False))
+        return [self.parse_one(element) for element in elements]
 
-#@RegistryWrapper()
+    @Logger(sync=True)
+    def parse_one(self, element):
+        tags = (element.find("div", {"data-auto-themename": "listDetailed"})
+                .find("div")
+                .findChildren("div", recursive = False))
+        image = tags[0].find("img")["src"]
+        name = tags[1].find("div").get_text()
+        url = "https://market.yandex.ru" + tags[1].find("div").find("a")["href"]
+        price = tags[2].find("span", {"data-auto": "snippet-price-current"}).find("span").contents[0]
+        return Product(name, price, image, "ЯМаркет", url)
+
+
+
+@RegistryWrapper()
 class Ozon(SiteInterface):
     _url = "https://www.ozon.ru/search/?text={0}"
     _css_selector = "#__ozon"
