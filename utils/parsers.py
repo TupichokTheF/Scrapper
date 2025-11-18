@@ -164,8 +164,6 @@ class YaMarket(SiteInterface):
         price = tags[2].find("span", {"data-auto": "snippet-price-current"}).find("span").contents[0]
         return Product(name, price, image, "ЯМаркет", url)
 
-
-
 @RegistryWrapper()
 class Ozon(SiteInterface):
     _url = "https://www.ozon.ru/search/?text={0}"
