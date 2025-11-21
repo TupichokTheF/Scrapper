@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from aiohttp import ClientSession
 import json
 from .request_params.MVideo import GET_product_ids, POST_list_products, GET_product_prices
-import time, asyncio
+import asyncio
 
 from utils import RegistryWrapper, Logger
 
@@ -168,6 +168,14 @@ class YaMarket(SiteInterface):
 class Ozon(SiteInterface):
     _url = "https://www.ozon.ru/search/?text={0}"
     _css_selector = "#__ozon"
+
+    async def load_page(self, context, name_of_product):
+        self.page = await context.new_page()
+        await self.page.goto(self._url.format(name_of_product))
+        if self.page.locator("[class='container']"):
+            return
+        locator = self.page.locator(self._css_selector)
+        await expect(locator).to_be_visible(timeout=50000)
 
     def parse_page(self):
         pass

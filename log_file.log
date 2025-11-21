@@ -1,41 +1,5 @@
-2025-11-17 14:32:28,987 ERROR get_product_ids Expecting value: line 1 column 1 (char 0)
-2025-11-17 14:32:29,002 ERROR get_product_prices can only join an iterable
-2025-11-17 14:32:29,664 ERROR get_products 'body'
-2025-11-17 14:32:37,877 ERROR parse_one 'NoneType' object has no attribute 'find'
-2025-11-17 14:32:37,879 ERROR parse_one 'NoneType' object has no attribute 'find'
-2025-11-17 14:32:57,785 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,790 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,791 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,791 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,792 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,792 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,792 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,794 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,795 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,795 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,795 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,798 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,799 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,800 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,800 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,800 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,800 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,800 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,806 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,806 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,806 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,806 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,806 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,806 ERROR parse_one_product 'NoneType' object is not subscriptable
-2025-11-17 14:32:57,808 ERROR parse_one_product 'NoneType' object is not subscriptable
+2025-11-19 12:50:27,941 ERROR get_product_ids Expecting value: line 1 column 1 (char 0)
+2025-11-19 12:50:27,948 ERROR get_product_prices can only join an iterable
+2025-11-19 12:50:28,221 ERROR get_products 'body'
+2025-11-19 12:50:39,307 ERROR parse_one 'NoneType' object has no attribute 'find'
+2025-11-19 12:50:39,373 ERROR parse_one 'NoneType' object has no attribute 'find'
