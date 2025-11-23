@@ -20,6 +20,15 @@ def async_timer(func):
             print(time.time() - start)
     return wrapper
 
+def sync_timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            print(time.time() - start)
+    return wrapper
+
 class Logger:
 
     def __init__(self, sync):

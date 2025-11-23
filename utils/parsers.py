@@ -91,31 +91,34 @@ class Eldorado(SiteInterface):
     _url = "https://www.eldorado.ru/search/catalog.php?q={0}"
     _css_selector = "#__next"
 
+    async def execute(self, context, name_of_product):
+        return await super().execute(context, name_of_product)
+
+    @Logger(sync=True)
     def parse_page(self):
         soup = BeautifulSoup(self.content, "html.parser")
         ls_items = (soup.find("div", {"id": "listing-container"})
                     .find("ul")
                     .findChildren("li", recursive = False))
-        result = [self.parse_one(item) for item in ls_items]
+        result = [self.parse_one(item) for item in ls_items if item is not None]
         return result
 
     @Logger(sync=True)
     def parse_one(self, item):
-        try:
-            item_tags = item.findChildren("div", recursive=False)
-            image = item_tags[0].find("img")["src"]
-            name = item_tags[1].find("a").contents[0]
-            price = item_tags[2].find("span").contents[0]
-            url = item_tags[0].find("a")["href"]
-            return Product(name, price, image, "Эльдорадо", url)
-        except Exception as e:
-            #logging.exception(type(e).__name__)
-            return None
+        item_tags = item.findChildren("div", recursive=False)
+        image = item_tags[0].find("img")["src"]
+        name = item_tags[1].find("a").contents[0]
+        price = item_tags[2].find("span").contents[0]
+        url = item_tags[0].find("a")["href"]
+        return Product(name, price, image, "Эльдорадо", url)
 
 @RegistryWrapper()
 class Citilink(SiteInterface):
     _url = "https://www.citilink.ru/search/?text={0}"
     _css_selector = "[data-meta-name=ProductListLayout]"
+
+    async def execute(self, context, name_of_product):
+        return await super().execute(context, name_of_product)
 
     @Logger(sync=False)
     async def load_page(self, context, name_of_product):
@@ -131,7 +134,7 @@ class Citilink(SiteInterface):
               .findChildren("div", recursive = False)[1]
               .findChildren("div", recursive = False)[1]
               .findChildren("div", recursive = False))
-        return [self.parse_one_product(element) for element in elements]
+        return [self.parse_one_product(element) for element in elements if element is not None]
 
     @Logger(sync=True)
     def parse_one_product(self, element):
@@ -140,18 +143,21 @@ class Citilink(SiteInterface):
         name = tags[1].findChildren("div", recursive = False)[2].find("a").get_text()
         url = "https://www.citilink.ru/" + tags[1].findChildren("div", recursive = False)[2].find("a")["href"]
         price = tags[4].findChildren("div", recursive = False)[1].find("div").get_text()
-        pr = Product(name, price, image, "Ситилинк", url)
-        return pr
+        return Product(name, price, image, "Ситилинк", url)
 
-@RegistryWrapper()
+#@RegistryWrapper()
 class YaMarket(SiteInterface):
     _url = "https://market.yandex.ru/search?text={0}"
     _css_selector = ".page"
 
+    async def execute(self, context, name_of_product):
+        return await super().execute(context, name_of_product)
+
+    @Logger(sync=True)
     def parse_page(self):
         soup = BeautifulSoup(self.content, "html.parser")
         elements = (soup.find("div", {"data-auto": "SerpList"}).findChildren("div", recursive = False))
-        return [self.parse_one(element) for element in elements]
+        return [self.parse_one(element) for element in elements if element is not None]
 
     @Logger(sync=True)
     def parse_one(self, element):
@@ -164,18 +170,32 @@ class YaMarket(SiteInterface):
         price = tags[2].find("span", {"data-auto": "snippet-price-current"}).find("span").contents[0]
         return Product(name, price, image, "ЯМаркет", url)
 
-@RegistryWrapper()
+#@RegistryWrapper()
 class Ozon(SiteInterface):
     _url = "https://www.ozon.ru/search/?text={0}"
     _css_selector = "#__ozon"
 
-    async def load_page(self, context, name_of_product):
-        self.page = await context.new_page()
-        await self.page.goto(self._url.format(name_of_product))
-        if self.page.locator("[class='container']"):
-            return
-        locator = self.page.locator(self._css_selector)
-        await expect(locator).to_be_visible(timeout=50000)
+    async def execute(self, context, name_of_product):
+        return await super().execute(context, name_of_product)
 
+    @Logger(sync=True)
     def parse_page(self):
-        pass
+        try:
+            soup = BeautifulSoup(self.content, "html.parser")
+            elements = (soup.find("div", {"id": "contentScrollPaginator"})
+                        .find("div")
+                        .find("div")
+                        .find("div")
+                        .findChildren("div", recursive = False))
+            return [self.parse_one(item) for item in elements if item is not None]
+        except Exception as e:
+            print(e)
+
+    @Logger(sync=True)
+    def parse_one(self, item):
+        image = item.find("img")["src"]
+        url = "https://www.ozon.ru/" + item.find("a")["href"]
+        name_price = item.findChildren("div", recursive = False)[0]
+        price = name_price.find("div").find("span").get_text()
+        name = name_price.find("a").get_text()
+        return Product(name, price, image, "OZON", url)
