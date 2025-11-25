@@ -1,13 +1,14 @@
-from bs4 import BeautifulSoup
 from playwright.async_api import expect
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from aiohttp import ClientSession
-import json
-from .request_params.MVideo import GET_product_ids, POST_list_products, GET_product_prices
 import asyncio
 
+import json
+from dataclasses import dataclass, fields
+from abc import ABC, abstractmethod
+from bs4 import BeautifulSoup
+
 from utils import RegistryWrapper, Logger
+from .request_params.MVideo import GET_product_ids, POST_list_products, GET_product_prices
 
 @dataclass(frozen=True)
 class Product:
@@ -16,6 +17,10 @@ class Product:
     image: str
     shop: str
     url: str = None
+
+    def transform_to_list(self):
+        product_fields = fields(self)
+        return [getattr(self, field.name) for field in product_fields]
 
 class SiteInterface(ABC):
     _url = None

@@ -1,5 +1,5 @@
-2025-11-23 14:10:09,572 ERROR get_product_ids Expecting value: line 1 column 1 (char 0)
-2025-11-23 14:10:09,590 ERROR get_product_prices can only join an iterable
-2025-11-23 14:10:10,154 ERROR get_products 'body'
-2025-11-23 14:10:17,399 ERROR parse_one 'NoneType' object is not subscriptable
-2025-11-23 14:10:17,399 ERROR parse_one list index out of range
+2025-11-25 04:26:18,745 ERROR get_product_ids Expecting value: line 1 column 1 (char 0)
+2025-11-25 04:26:18,764 ERROR get_product_prices can only join an iterable
+2025-11-25 04:26:18,949 ERROR get_products 'body'
+2025-11-25 04:26:29,003 ERROR parse_one 'NoneType' object is not subscriptable
+2025-11-25 04:26:29,006 ERROR parse_one list index out of range

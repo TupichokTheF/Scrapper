@@ -1,11 +1,10 @@
-import asyncio, csv, dataclasses, functools, multiprocessing
-from asyncio import FIRST_EXCEPTION, FIRST_COMPLETED
-from concurrent.futures import ProcessPoolExecutor
+import asyncio
+from asyncio import FIRST_COMPLETED
 
 from playwright.async_api import async_playwright, ViewportSize
 from playwright_stealth import Stealth
 
-from utils import RegistryWrapper, async_timer, sync_timer
+from utils import RegistryWrapper, async_timer, file_writers
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
 
@@ -25,32 +24,11 @@ async def executer(name_of_product_):
                     res.append(done_task.result())
     return res
 
-class CsvWriter:
-
-    def __init__(self, elements):
-        self.elements = elements
-
-    @sync_timer
-    def write_to_file(self):
-        with open("data.csv", 'w', encoding="utf-8") as file:
-            csv_writer = csv.writer(file)
-            for row in self.take_products():
-                csv_writer.writerow(row)
-
-    def take_products(self):
-        for shop_products in self.elements:
-            yield from self.dataclass_to_list(shop_products)
-
-    def dataclass_to_list(self, shop_products):
-        for product in shop_products:
-            if product:
-                product_fields = dataclasses.fields(product)
-                yield [getattr(product, field.name) for field in product_fields]
-
 async def main():
     name_of_product = '+'.join(input().split())
     parsed_elements = await executer(name_of_product)
-    writer = CsvWriter(parsed_elements)
+    writer = file_writers.FILE_WRITERS["CSV"]
+    writer = writer(parsed_elements)
     writer.write_to_file()
 
 if __name__ == '__main__':
