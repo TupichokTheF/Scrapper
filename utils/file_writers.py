@@ -3,13 +3,21 @@ from utils import sync_timer
 from abc import abstractmethod, ABC
 import csv
 
+FILE_WRITERS = {}
+
+def registry_writer(cls):
+    FILE_WRITERS[cls.name] = cls
+    return cls
+
 class WriterInterface(ABC):
 
     @abstractmethod
     def write_to_file(self):
         pass
 
+@registry_writer
 class CsvWriter(WriterInterface):
+    name = "CSV"
 
     def __init__(self, elements):
         self.elements = elements
@@ -26,7 +34,3 @@ class CsvWriter(WriterInterface):
             for product in shop_products:
                 if product:
                     yield product.transform_to_list()
-
-FILE_WRITERS = {
-    "CSV": CsvWriter,
-}

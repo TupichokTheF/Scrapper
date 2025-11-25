@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import FIRST_COMPLETED
 
 from playwright.async_api import async_playwright, ViewportSize
 from playwright_stealth import Stealth
@@ -18,7 +17,7 @@ async def executer(name_of_product_):
         pending = [asyncio.create_task(site.execute(context, name_of_product_)) for site in sites]
 
         while pending:
-            done, pending = await asyncio.wait(pending, return_when=FIRST_COMPLETED)
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
             for done_task in done:
                 if not done_task.exception():
                     res.append(done_task.result())

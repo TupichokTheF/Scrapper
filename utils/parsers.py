@@ -150,7 +150,7 @@ class Citilink(SiteInterface):
         price = tags[4].findChildren("div", recursive = False)[1].find("div").get_text()
         return Product(name, price, image, "Ситилинк", url)
 
-#@RegistryWrapper()
+@RegistryWrapper()
 class YaMarket(SiteInterface):
     _url = "https://market.yandex.ru/search?text={0}"
     _css_selector = ".page"
@@ -175,7 +175,7 @@ class YaMarket(SiteInterface):
         price = tags[2].find("span", {"data-auto": "snippet-price-current"}).find("span").contents[0]
         return Product(name, price, image, "ЯМаркет", url)
 
-#@RegistryWrapper()
+@RegistryWrapper()
 class Ozon(SiteInterface):
     _url = "https://www.ozon.ru/search/?text={0}"
     _css_selector = "#__ozon"
